@@ -6,6 +6,7 @@ import {
   PLAYER_HUMAN,
 } from './utils/gameLogic';
 import './index.css';
+import './App.css';
 
 const typeLabels = {
   bright: '光',
@@ -22,14 +23,10 @@ const typeOrder = {
 };
 
 const cardStyles = {
-  bright:
-    'from-amber-200 via-rose-200 to-orange-300 text-slate-900 border-amber-400',
-  animal:
-    'from-emerald-200 via-emerald-300 to-teal-400 text-emerald-950 border-emerald-400',
-  ribbon:
-    'from-sky-200 via-indigo-200 to-purple-300 text-slate-900 border-sky-400',
-  chaff:
-    'from-slate-200 via-slate-300 to-slate-100 text-slate-900 border-slate-300',
+  bright: 'hanafuda-card--bright',
+  animal: 'hanafuda-card--animal',
+  ribbon: 'hanafuda-card--ribbon',
+  chaff: 'hanafuda-card--chaff',
 };
 
 function sortCards(cards) {
@@ -68,12 +65,14 @@ function HanafudaCard({ card, onClick, disabled, highlight = false, size = 'md' 
       onClick={onClick}
       disabled={disabled}
       className={[
-        'relative inline-flex flex-col justify-between rounded-xl border-2 bg-gradient-to-br p-2 shadow transition-transform duration-150',
+        'hanafuda-card',
         cardStyles[card.type],
         baseSize,
-        disabled ? 'cursor-not-allowed opacity-40' : 'hover:-translate-y-1',
-        highlight ? 'ring-4 ring-amber-300 ring-offset-2 ring-offset-slate-900' : '',
-      ].join(' ')}
+        disabled ? 'is-disabled' : '',
+        highlight ? 'is-highlighted' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <div className="flex items-center justify-between text-[11px] font-semibold">
         <span>{card.month}月</span>
@@ -101,10 +100,7 @@ function CardBack({ label = '札', size = 'md' }) {
 
   return (
     <div
-      className={[
-        'flex items-center justify-center rounded-xl border-2 border-slate-700 bg-slate-800 text-slate-200 shadow-inner',
-        baseSize,
-      ].join(' ')}
+      className={['hanafuda-card-back', baseSize].join(' ')}
     >
       <span>{label}</span>
     </div>
@@ -114,8 +110,8 @@ function CardBack({ label = '札', size = 'md' }) {
 function CaptureStrip({ title, cards }) {
   const summary = useMemo(() => summarizeCapture(cards), [cards]);
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-      <header className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-300">
+    <section className="hanafuda-panel hanafuda-panel--subtle p-3 lg:p-4">
+      <header className="hanafuda-panel-header mb-2 flex items-center justify-between text-xs font-semibold sm:text-sm">
         <span>{title}</span>
         <span>
           光 {summary.bright} / 種 {summary.animal} / 短 {summary.ribbon} / カス {summary.chaff}
@@ -123,7 +119,7 @@ function CaptureStrip({ title, cards }) {
       </header>
       <div className="flex flex-wrap gap-2">
         {cards.length === 0 ? (
-          <span className="text-xs text-slate-500">まだ獲得していません</span>
+          <span className="text-xs text-white/40">まだ獲得していません</span>
         ) : (
           sortCards(cards).map((card) => (
             <HanafudaCard key={card.id} card={card} size="sm" disabled />
@@ -139,11 +135,11 @@ function RoundResult({ result, scores, onNextRound, onReset }) {
     ? `${result.winner === PLAYER_HUMAN ? 'あなた' : 'つばめAI'}の勝利！`
     : '流局';
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
-      <div className="w-full max-w-lg space-y-5 rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-        <h2 className="text-2xl font-bold text-amber-300">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="hanafuda-panel hanafuda-panel--overlay w-full max-w-lg space-y-5 p-6 lg:p-7">
+        <h2 className="hanafuda-title text-2xl font-semibold">{title}</h2>
         {result.winner && (
-          <div className="rounded-xl border border-amber-500/60 bg-amber-500/10 p-4">
+          <div className="hanafuda-alert space-y-2 p-4">
             <p className="text-lg font-semibold">
               {result.yaku.map((item) => item.name).join('、')} → {result.points}点
             </p>
@@ -157,27 +153,27 @@ function RoundResult({ result, scores, onNextRound, onReset }) {
           </div>
         )}
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-3">
-            <p className="text-slate-400">あなた</p>
-            <p className="text-xl font-bold text-slate-100">{scores[PLAYER_HUMAN]} 点</p>
+          <div className="hanafuda-badge space-y-1">
+            <p className="hanafuda-meta">あなた</p>
+            <p className="text-xl font-semibold text-white">{scores[PLAYER_HUMAN]} 点</p>
           </div>
-          <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-3">
-            <p className="text-slate-400">つばめAI</p>
-            <p className="text-xl font-bold text-slate-100">{scores[PLAYER_CPU]} 点</p>
+          <div className="hanafuda-badge space-y-1">
+            <p className="hanafuda-meta">つばめAI</p>
+            <p className="text-xl font-semibold text-white">{scores[PLAYER_CPU]} 点</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => onNextRound(true)}
-            className="inline-flex flex-1 items-center justify-center rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-400"
+            className="hanafuda-button hanafuda-button--primary flex-1 px-5 py-2 text-xs font-semibold sm:text-sm"
           >
             次の局へ進む
           </button>
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex flex-1 items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-100 hover:bg-slate-800"
+            className="hanafuda-button hanafuda-button--outline flex-1 px-5 py-2 text-xs font-semibold sm:text-sm"
           >
             スコアをリセット
           </button>
@@ -189,14 +185,14 @@ function RoundResult({ result, scores, onNextRound, onReset }) {
 
 function LogPanel({ logs }) {
   return (
-    <section className="flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900/70">
-      <header className="border-b border-slate-800 p-3 text-sm font-semibold text-slate-300">対局ログ</header>
-      <div className="flex-1 space-y-2 overflow-y-auto p-3 text-xs leading-relaxed text-slate-200">
-        {logs.length === 0 && <p className="text-slate-500">まだ動きはありません。</p>}
+    <section className="hanafuda-panel hanafuda-panel--overlay flex h-full flex-col">
+      <header className="hanafuda-panel-header border-b border-transparent p-3 text-xs font-semibold sm:text-sm">対局ログ</header>
+      <div className="hanafuda-scroll flex-1 space-y-2 overflow-y-auto p-3 text-xs leading-relaxed text-white/80">
+        {logs.length === 0 && <p className="text-white/40">まだ動きはありません。</p>}
         {logs.map((entry) => (
-          <div key={entry.id} className="rounded-lg bg-slate-800/60 p-2 shadow">
+          <div key={entry.id} className="hanafuda-log-entry p-2 text-[13px]">
             <p>{entry.message}</p>
-            <p className="mt-1 text-[10px] text-slate-500">{new Date(entry.timestamp).toLocaleTimeString()}</p>
+            <p className="mt-1 text-[10px] text-white/40">{new Date(entry.timestamp).toLocaleTimeString()}</p>
           </div>
         ))}
       </div>
@@ -269,44 +265,44 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-6">
-        <header className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-6 shadow-lg">
+    <div className="hanafuda-shell">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">
+        <header className="hanafuda-panel flex flex-col gap-4 p-6 lg:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-amber-300">花札 対戦（簡易こいこい）</h1>
-              <p className="text-sm text-slate-300">第{roundNumber}局・山札 {deck.length} 枚 / 手番：{turn === PLAYER_HUMAN ? 'あなた' : 'つばめAI'}</p>
+              <h1 className="hanafuda-title text-3xl font-semibold">花札 対戦（簡易こいこい）</h1>
+              <p className="hanafuda-subtitle text-sm">第{roundNumber}局・山札 {deck.length} 枚 / 手番：{turn === PLAYER_HUMAN ? 'あなた' : 'つばめAI'}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => handleNextRound(true)}
-                className="rounded-full border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-slate-800"
+                className="hanafuda-button hanafuda-button--outline px-5 py-2 text-xs font-semibold sm:text-sm"
               >
                 次の局を配る
               </button>
               <button
                 type="button"
                 onClick={handleResetScores}
-                className="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-amber-400"
+                className="hanafuda-button hanafuda-button--primary px-5 py-2 text-xs font-semibold sm:text-sm"
               >
                 新しく始める
               </button>
             </div>
           </div>
           {pendingSelection && pendingSelection.playerId === PLAYER_HUMAN && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-400/20 p-3 text-sm text-amber-100">
+            <div className="hanafuda-alert p-3 text-sm">
               <p>{pendingSelection.card.name} の取り札を選択してください。</p>
             </div>
           )}
         </header>
 
         <main className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-          <section className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+          <section className="hanafuda-panel hanafuda-panel--subtle space-y-4 p-4 lg:p-6">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-200">つばめAI（手札 {cpuHand.length} 枚）</h2>
-                <span className="text-sm text-slate-400">得点: {scores[PLAYER_CPU]} 点</span>
+                <h2 className="hanafuda-subtitle text-base font-semibold sm:text-lg">つばめAI（手札 {cpuHand.length} 枚）</h2>
+                <span className="hanafuda-meta text-xs sm:text-sm">得点: {scores[PLAYER_CPU]} 点</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {cpuHand.map((_, idx) => (
@@ -317,12 +313,12 @@ function App() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-200">場札</h2>
-                <span className="text-sm text-slate-400">合計 {fieldCards.length} 枚</span>
+                <h2 className="hanafuda-subtitle text-base font-semibold sm:text-lg">場札</h2>
+                <span className="hanafuda-meta text-xs sm:text-sm">合計 {fieldCards.length} 枚</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {fieldCards.length === 0 && (
-                  <span className="text-sm text-slate-500">場札はありません。</span>
+                  <span className="text-sm text-white/40">場札はありません。</span>
                 )}
                 {fieldCards.map((card) => (
                   <HanafudaCard
@@ -338,12 +334,12 @@ function App() {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-200">あなたの手札（{playerHand.length} 枚）</h2>
-                <span className="text-sm text-slate-400">得点: {scores[PLAYER_HUMAN]} 点</span>
+                <h2 className="hanafuda-subtitle text-base font-semibold sm:text-lg">あなたの手札（{playerHand.length} 枚）</h2>
+                <span className="hanafuda-meta text-xs sm:text-sm">得点: {scores[PLAYER_HUMAN]} 点</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {playerHand.length === 0 && (
-                  <span className="text-sm text-slate-500">手札はありません。</span>
+                  <span className="text-sm text-white/40">手札はありません。</span>
                 )}
                 {playerHand.map((card) => (
                   <HanafudaCard

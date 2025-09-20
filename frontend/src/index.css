@@ -1,10 +1,18 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply bg-slate-900 text-slate-100 font-sans;
+  @apply font-sans antialiased;
+  background-color: var(--hanafuda-ink, #0d0c0a);
+  color: var(--hanafuda-cream, #f4efe6);
   font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body::selection {
+  background: rgba(215, 173, 98, 0.3);
+  color: inherit;
 }
 
 #root {

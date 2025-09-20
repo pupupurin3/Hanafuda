@@ -1,1 +1,280 @@
-﻿
+:root {
+  --hanafuda-ink: #0d0c0a;
+  --hanafuda-lacquer: #3a1616;
+  --hanafuda-crimson: #a02529;
+  --hanafuda-gold: #d7ad62;
+  --hanafuda-moss: #264c33;
+  --hanafuda-indigo: #1f2f47;
+  --hanafuda-cream: #f4efe6;
+  --hanafuda-muted: #c8bda4;
+  --hanafuda-panel-dark: rgba(24, 17, 14, 0.9);
+  --hanafuda-panel-soft: rgba(31, 23, 19, 0.78);
+}
+
+.hanafuda-shell {
+  min-height: 100vh;
+  color: var(--hanafuda-cream);
+  background-color: var(--hanafuda-ink);
+  background-image: radial-gradient(120% 120% at 50% 0%, rgba(215, 173, 98, 0.12), transparent 62%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(165, 117, 72, 0.12) 0,
+      rgba(165, 117, 72, 0.12) 18px,
+      transparent 18px,
+      transparent 36px
+    );
+  position: relative;
+}
+
+.hanafuda-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 18% 22%, rgba(255, 182, 193, 0.08), transparent 58%),
+    radial-gradient(circle at 80% 4%, rgba(64, 112, 86, 0.08), transparent 55%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.04), transparent 60%);
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  z-index: 0;
+}
+
+.hanafuda-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hanafuda-panel {
+  border-radius: 1rem;
+  border: 1px solid rgba(206, 176, 135, 0.28);
+  background: linear-gradient(160deg, rgba(38, 23, 17, 0.92), rgba(16, 10, 8, 0.92));
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+}
+
+.hanafuda-panel--subtle {
+  background: linear-gradient(160deg, rgba(34, 24, 18, 0.78), rgba(15, 10, 8, 0.82));
+  border-color: rgba(206, 176, 135, 0.18);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+}
+
+.hanafuda-panel--overlay {
+  background: linear-gradient(160deg, rgba(29, 21, 17, 0.92), rgba(15, 10, 8, 0.92));
+  border-color: rgba(206, 176, 135, 0.22);
+}
+
+.hanafuda-panel-header {
+  color: var(--hanafuda-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hanafuda-title {
+  font-family: 'Shippori Mincho', 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 18px rgba(215, 173, 98, 0.35);
+  color: var(--hanafuda-gold);
+}
+
+.hanafuda-subtitle {
+  color: rgba(244, 239, 230, 0.75);
+  font-size: 0.9rem;
+}
+
+.hanafuda-meta {
+  color: rgba(200, 189, 164, 0.8);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.hanafuda-badge {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(206, 176, 135, 0.28);
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(160deg, rgba(35, 24, 18, 0.9), rgba(23, 14, 10, 0.9));
+}
+.hanafuda-alert {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(215, 173, 98, 0.45);
+  background: linear-gradient(135deg, rgba(215, 173, 98, 0.18), rgba(111, 79, 35, 0.18));
+  color: rgba(255, 236, 205, 0.95);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+}
+
+.hanafuda-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+.hanafuda-button--primary {
+  background: linear-gradient(135deg, var(--hanafuda-crimson), #d94d47);
+  color: #200b0b;
+  border: 1px solid rgba(215, 173, 98, 0.4);
+  box-shadow: 0 16px 30px rgba(167, 45, 45, 0.35);
+}
+
+.hanafuda-button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 36px rgba(167, 45, 45, 0.45);
+  background: linear-gradient(135deg, #b6252b, #f0655e);
+}
+
+.hanafuda-button--outline {
+  border: 1px solid rgba(206, 176, 135, 0.4);
+  color: var(--hanafuda-cream);
+  background: linear-gradient(160deg, rgba(32, 25, 20, 0.85), rgba(16, 12, 10, 0.9));
+}
+
+.hanafuda-button--outline:hover {
+  transform: translateY(-2px);
+  border-color: rgba(215, 173, 98, 0.6);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(160deg, rgba(44, 30, 24, 0.9), rgba(18, 12, 9, 0.95));
+}
+
+.hanafuda-card,
+.hanafuda-card-back {
+  border-radius: 0.85rem;
+  border: 2px solid transparent;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+  letter-spacing: 0.06em;
+  font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+}
+
+.hanafuda-card {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.6rem;
+  background-size: cover;
+  overflow: hidden;
+  color: #1a100b;
+}
+
+.hanafuda-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 50%),
+    radial-gradient(circle at 80% 85%, rgba(255, 255, 255, 0.12), transparent 60%);
+  mix-blend-mode: screen;
+  opacity: 0.65;
+}
+
+.hanafuda-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hanafuda-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 36px rgba(0, 0, 0, 0.45);
+}
+
+.hanafuda-card.is-disabled {
+  opacity: 0.45;
+  filter: saturate(0.7);
+  transform: none;
+  cursor: not-allowed;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.hanafuda-card.is-highlighted {
+  box-shadow: 0 0 0 3px rgba(215, 173, 98, 0.7), 0 24px 40px rgba(0, 0, 0, 0.45);
+  transform: translateY(-6px);
+}
+
+.hanafuda-card.is-highlighted::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(215, 173, 98, 0.5);
+  pointer-events: none;
+}
+
+.hanafuda-card--bright {
+  background: linear-gradient(145deg, #f9e4b4, #d95946 38%, #400f0b 100%);
+  border-color: rgba(215, 173, 98, 0.75);
+  color: #2b120c;
+}
+
+.hanafuda-card--animal {
+  background: linear-gradient(150deg, #6bb08a, #1f3a2c 65%, #101915 100%);
+  border-color: rgba(134, 195, 154, 0.58);
+  color: #0f2118;
+}
+
+.hanafuda-card--ribbon {
+  background: linear-gradient(150deg, #c1c8ef, #2a2f5f 55%, #151225 95%);
+  border-color: rgba(139, 152, 209, 0.55);
+  color: #121327;
+}
+
+.hanafuda-card--chaff {
+  background: linear-gradient(150deg, #f2e6d3, #ba9c78 55%, #3a2618 100%);
+  border-color: rgba(214, 184, 140, 0.6);
+  color: #24160d;
+}
+
+.hanafuda-card-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hanafuda-muted);
+  background-image: repeating-linear-gradient(135deg, rgba(137, 27, 30, 0.92) 0, rgba(137, 27, 30, 0.92) 14px, rgba(55, 10, 13, 0.95) 14px, rgba(55, 10, 13, 0.95) 28px);
+  border-color: rgba(215, 173, 98, 0.45);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.hanafuda-log-entry {
+  border-radius: 0.75rem;
+  background: linear-gradient(160deg, rgba(35, 26, 22, 0.9), rgba(15, 10, 8, 0.9));
+  border: 1px solid rgba(206, 176, 135, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.hanafuda-scroll {
+  scrollbar-color: rgba(215, 173, 98, 0.45) transparent;
+}
+
+.hanafuda-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.hanafuda-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hanafuda-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(215, 173, 98, 0.7), rgba(136, 103, 61, 0.7));
+  border-radius: 9999px;
+}
+
+@media (max-width: 768px) {
+  .hanafuda-shell {
+    background-image: radial-gradient(120% 120% at 50% 0%, rgba(215, 173, 98, 0.12), transparent 58%),
+      repeating-linear-gradient(
+        135deg,
+        rgba(165, 117, 72, 0.16) 0,
+        rgba(165, 117, 72, 0.16) 14px,
+        transparent 14px,
+        transparent 28px
+      );
+  }
+
+  .hanafuda-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
