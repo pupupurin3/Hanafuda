@@ -126,6 +126,69 @@ export function calculateYaku(capturedCards) {
   return { total, list: yaku };
 }
 
+export const YAKU_REFERENCE = [
+  {
+    name: '五光',
+    points: '15点',
+    description: '五枚すべての光札を揃えた役。',
+  },
+  {
+    name: '四光',
+    points: '8点',
+    description: '雨入り以外の光札四枚を揃えた役。',
+  },
+  {
+    name: '雨四光',
+    points: '7点',
+    description: '雨入りを含む光札四枚を揃えた役。',
+  },
+  {
+    name: '三光',
+    points: '5点',
+    description: '雨入り以外の光札三枚を揃えた役。',
+  },
+  {
+    name: '猪鹿蝶',
+    points: '5点',
+    description: '猪・鹿・蝶（7月・10月・6月の種札）を揃えた役。',
+  },
+  {
+    name: '花見で一杯',
+    points: '5点',
+    description: '桜に幕（3月の光札）と盃（9月の種札）を揃えた役。',
+  },
+  {
+    name: '月見で一杯',
+    points: '5点',
+    description: '月に雁（8月の光札）と盃（9月の種札）を揃えた役。',
+  },
+  {
+    name: '赤短',
+    points: '5点',
+    description: '赤い短冊札三枚を揃えた役。',
+  },
+  {
+    name: '青短',
+    points: '5点',
+    description: '青い短冊札三枚を揃えた役。',
+  },
+  {
+    name: 'たん',
+    points: '枚数−4点',
+    description: '短冊札を五枚以上集めた役。以降一枚増えるごとに加点。',
+  },
+  {
+    name: 'たね',
+    points: '枚数−4点',
+    description: '種札を五枚以上集めた役。以降一枚増えるごとに加点。',
+  },
+  {
+    name: 'かす',
+    points: '枚数−9点',
+    description: 'カス札を十枚以上集めた役。以降一枚増えるごとに加点。',
+  },
+];
+
 export function describeCard(card) {
   if (!card) {
     return '';

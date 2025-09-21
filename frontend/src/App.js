@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 import {
   createInitialState,
   gameReducer,
   PLAYER_CPU,
   PLAYER_HUMAN,
 } from './utils/gameLogic';
-import { describeCard } from './utils/yaku';
+import { describeCard, YAKU_REFERENCE } from './utils/yaku';
 import './index.css';
 import './App.css';
 
@@ -121,8 +121,30 @@ function CardBack({ label = '札', size = 'md' }) {
   );
 }
 
-function CaptureStrip({ title, cards }) {
+function CaptureStrip({ title, cards, variant = 'panel' }) {
   const summary = useMemo(() => summarizeCapture(cards), [cards]);
+  const sortedCards = useMemo(() => sortCards(cards), [cards]);
+
+  if (variant === 'inline') {
+    return (
+      <div className="hanafuda-capture-shelf">
+        <div className="hanafuda-capture-shelf__header">
+          <span>{title}</span>
+          <span>
+            光 {summary.bright} / 種 {summary.animal} / 短 {summary.ribbon} / カス {summary.chaff}
+          </span>
+        </div>
+        <div className="hanafuda-capture-shelf__body">
+          {sortedCards.length === 0 ? (
+            <span className="hanafuda-capture-empty">まだ獲得していません</span>
+          ) : (
+            sortedCards.map((card) => <HanafudaCard key={card.id} card={card} size="sm" disabled />)
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="hanafuda-panel hanafuda-panel--subtle p-3 lg:p-4">
       <header className="hanafuda-panel-header mb-2 flex items-center justify-between text-xs font-semibold sm:text-sm">
@@ -132,12 +154,10 @@ function CaptureStrip({ title, cards }) {
         </span>
       </header>
       <div className="flex flex-wrap gap-2">
-        {cards.length === 0 ? (
+        {sortedCards.length === 0 ? (
           <span className="text-xs text-white/40">まだ獲得していません</span>
         ) : (
-          sortCards(cards).map((card) => (
-            <HanafudaCard key={card.id} card={card} size="sm" disabled />
-          ))
+          sortedCards.map((card) => <HanafudaCard key={card.id} card={card} size="sm" disabled />)
         )}
       </div>
     </section>
@@ -191,6 +211,42 @@ function RoundResult({ result, scores, onNextRound, onReset }) {
           >
             スコアをリセット
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function YakuReferenceModal({ onClose }) {
+  return (
+    <div className="hanafuda-modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+      <div
+        className="hanafuda-panel hanafuda-panel--overlay hanafuda-modal-panel w-full max-w-3xl space-y-6 p-6 lg:p-7"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <h2 className="hanafuda-title text-2xl font-semibold">役の一覧</h2>
+            <p className="text-xs text-white/60 sm:text-sm">こいこいで使用する代表的な役の条件と得点を確認できます。</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="hanafuda-button hanafuda-button--outline px-4 py-2 text-xs font-semibold sm:text-sm"
+          >
+            閉じる
+          </button>
+        </header>
+        <div className="hanafuda-reference-grid">
+          {YAKU_REFERENCE.map((yaku) => (
+            <article key={yaku.name} className="hanafuda-reference-card">
+              <header className="hanafuda-reference-card__header">
+                <h3>{yaku.name}</h3>
+                <span>{yaku.points}</span>
+              </header>
+              <p>{yaku.description}</p>
+            </article>
+          ))}
         </div>
       </div>
     </div>
@@ -361,6 +417,7 @@ function ActionTimeline({ feed }) {
 
 function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
+  const [showYakuModal, setShowYakuModal] = useState(false);
   const {
     hands,
     field,
@@ -458,6 +515,13 @@ function App() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
+                onClick={() => setShowYakuModal(true)}
+                className="hanafuda-button hanafuda-button--outline px-5 py-2 text-xs font-semibold sm:text-sm"
+              >
+                役一覧を表示
+              </button>
+              <button
+                type="button"
                 onClick={() => handleNextRound(true)}
                 className="hanafuda-button hanafuda-button--outline px-5 py-2 text-xs font-semibold sm:text-sm"
               >
@@ -486,11 +550,12 @@ function App() {
 
         <main className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
           <section className="hanafuda-panel hanafuda-panel--subtle space-y-4 p-4 lg:p-6">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="hanafuda-subtitle text-base font-semibold sm:text-lg">つばめAI（手札 {cpuHand.length} 枚）</h2>
                 <span className="hanafuda-meta text-xs sm:text-sm">得点: {scores[PLAYER_CPU]} 点</span>
               </div>
+              <CaptureStrip title="つばめAI の獲得札" cards={cpuCaptures} variant="inline" />
               <div className="flex flex-wrap items-center gap-2">
                 {cpuHand.map((_, idx) => (
                   <CardBack key={`cpu-card-${idx}`} label="裏" size="lg" />
@@ -535,11 +600,12 @@ function App() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="hanafuda-subtitle text-base font-semibold sm:text-lg">あなたの手札（{playerHand.length} 枚）</h2>
                 <span className="hanafuda-meta text-xs sm:text-sm">得点: {scores[PLAYER_HUMAN]} 点</span>
               </div>
+              <CaptureStrip title="あなたの獲得札" cards={playerCaptures} variant="inline" />
               <div className="flex flex-wrap gap-2">
                 {playerHand.length === 0 && (
                   <span className="text-sm text-white/40">手札はありません。</span>
@@ -559,12 +625,11 @@ function App() {
 
           <aside className="flex h-full flex-col gap-4">
             <ActionTimeline feed={actionFeed} />
-            <CaptureStrip title="つばめAI の獲得札" cards={cpuCaptures} />
-            <CaptureStrip title="あなたの獲得札" cards={playerCaptures} />
             <LogPanel logs={logs} />
           </aside>
         </main>
       </div>
+      {showYakuModal && <YakuReferenceModal onClose={() => setShowYakuModal(false)} />}
       {roundOver && roundResult && (
         <RoundResult
           result={roundResult}
