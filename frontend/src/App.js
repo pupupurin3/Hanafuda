@@ -5,6 +5,7 @@ import {
   PLAYER_CPU,
   PLAYER_HUMAN,
 } from './utils/gameLogic';
+import { describeCard } from './utils/yaku';
 import './index.css';
 import './App.css';
 
@@ -27,6 +28,11 @@ const cardStyles = {
   animal: 'hanafuda-card--animal',
   ribbon: 'hanafuda-card--ribbon',
   chaff: 'hanafuda-card--chaff',
+};
+
+const playerLabels = {
+  [PLAYER_HUMAN]: 'あなた',
+  [PLAYER_CPU]: 'つばめAI',
 };
 
 function sortCards(cards) {
@@ -186,7 +192,9 @@ function RoundResult({ result, scores, onNextRound, onReset }) {
 function LogPanel({ logs }) {
   return (
     <section className="hanafuda-panel hanafuda-panel--overlay flex h-full flex-col">
-      <header className="hanafuda-panel-header border-b border-transparent p-3 text-xs font-semibold sm:text-sm">対局ログ</header>
+      <header className="hanafuda-panel-header border-b border-transparent p-3 text-xs font-semibold sm:text-sm">
+        対局ログ
+      </header>
       <div className="hanafuda-scroll flex-1 space-y-2 overflow-y-auto p-3 text-xs leading-relaxed text-white/80">
         {logs.length === 0 && <p className="text-white/40">まだ動きはありません。</p>}
         {logs.map((entry) => (
@@ -196,6 +204,148 @@ function LogPanel({ logs }) {
           </div>
         ))}
       </div>
+    </section>
+  );
+}
+
+function CardChip({ card }) {
+  if (!card) {
+    return null;
+  }
+  return (
+    <span className={`hanafuda-chip hanafuda-chip--${card.type}`} title={describeCard(card)}>
+      <span className="hanafuda-chip-month">{card.month}月</span>
+      <span className="hanafuda-chip-name">{card.name}</span>
+    </span>
+  );
+}
+
+function CardCollection({ title, cards }) {
+  if (!cards || cards.length === 0) {
+    return null;
+  }
+  return (
+    <div className="hanafuda-chip-stack">
+      {title && <span className="hanafuda-chip-label">{title}</span>}
+      <div className="hanafuda-chip-row">
+        {cards.map((card) => (
+          <CardChip key={card.id} card={card} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionTimeline({ feed }) {
+  if (!feed || feed.length === 0) {
+    return (
+      <section className="hanafuda-panel hanafuda-panel--overlay p-3 lg:p-4">
+        <header className="hanafuda-panel-header mb-3 text-xs font-semibold sm:text-sm">可視化された進行</header>
+        <p className="text-xs text-white/40">まだ対局は始まっていません。</p>
+      </section>
+    );
+  }
+
+  const renderEntry = (entry) => {
+    const actor = entry.playerId ? playerLabels[entry.playerId] : '進行';
+    switch (entry.type) {
+      case 'round-start':
+        return <p className="hanafuda-timeline-text">第{entry.roundNumber}局が始まりました。</p>;
+      case 'play-to-field':
+        return (
+          <div className="space-y-2">
+            <p className="hanafuda-timeline-text">
+              <strong className="hanafuda-timeline-actor">{actor}</strong> が <CardChip card={entry.card} /> を場に出しました。
+            </p>
+          </div>
+        );
+      case 'select-field':
+        return (
+          <div className="space-y-2">
+            <p className="hanafuda-timeline-text">
+              <strong className="hanafuda-timeline-actor">{actor}</strong> が <CardChip card={entry.handCard} /> の取り札を選択しています。
+            </p>
+            <CardCollection title="選択候補" cards={entry.options} />
+          </div>
+        );
+      case 'capture':
+        return (
+          <div className="space-y-2">
+            <p className="hanafuda-timeline-text">
+              <strong className="hanafuda-timeline-actor">{actor}</strong> が <CardChip card={entry.handCard} /> で取り札を獲得しました。
+            </p>
+            <CardCollection title="獲得" cards={entry.captured} />
+          </div>
+        );
+      case 'capture-triple':
+        return (
+          <div className="space-y-2">
+            <p className="hanafuda-timeline-text">
+              <strong className="hanafuda-timeline-actor">{actor}</strong> が <CardChip card={entry.handCard} /> で同月札三枚をまとめ取りしました。
+            </p>
+            <CardCollection title="まとめ取り" cards={entry.captured} />
+          </div>
+        );
+      case 'draw-to-field':
+        return (
+          <p className="hanafuda-timeline-text">
+            <strong className="hanafuda-timeline-actor">{actor}</strong> が山札から <CardChip card={entry.drawnCard} /> をめくり、場に置きました。
+          </p>
+        );
+      case 'capture-draw':
+        return (
+          <div className="space-y-2">
+            <p className="hanafuda-timeline-text">
+              <strong className="hanafuda-timeline-actor">{actor}</strong> が山札から <CardChip card={entry.drawnCard} /> をめくって取り札にしました。
+            </p>
+            <CardCollection title="同時に取った札" cards={entry.captured} />
+          </div>
+        );
+      case 'turn-end':
+        return (
+          <p className="hanafuda-timeline-text">
+            <strong className="hanafuda-timeline-actor">{actor}</strong> の手番が終了しました。
+          </p>
+        );
+      case 'round-result':
+        return (
+          <div className="space-y-2">
+            <p className="hanafuda-timeline-text">
+              <strong className="hanafuda-timeline-actor">{actor}</strong> が役を完成させ、{entry.points}点を獲得しました。
+            </p>
+            {entry.yaku && entry.yaku.length > 0 && (
+              <ul className="hanafuda-yaku-list">
+                {entry.yaku.map((item) => (
+                  <li key={item.name}>{item.name}（{item.points}点）</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      case 'round-draw':
+        return <p className="hanafuda-timeline-text">山札が尽きたため流局になりました。</p>;
+      default:
+        return <p className="hanafuda-timeline-text">進行中のイベント。</p>;
+    }
+  };
+
+  return (
+    <section className="hanafuda-panel hanafuda-panel--overlay p-3 lg:p-4">
+      <header className="hanafuda-panel-header mb-3 text-xs font-semibold sm:text-sm">可視化された進行</header>
+      <ol className="hanafuda-timeline space-y-3">
+        {feed.map((entry) => (
+          <li key={entry.id} className="hanafuda-timeline-item">
+            <div
+              className={['hanafuda-timeline-marker', entry.playerId ? `is-${entry.playerId}` : ''].join(' ')}
+              aria-hidden
+            />
+            <div className="hanafuda-timeline-content">
+              {renderEntry(entry)}
+              <span className="hanafuda-timeline-meta">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -214,6 +364,7 @@ function App() {
     roundOver,
     roundResult,
     roundNumber,
+    actionFeed,
   } = state;
 
   const playerHand = useMemo(() => sortCards(hands[PLAYER_HUMAN]), [hands]);
@@ -355,6 +506,7 @@ function App() {
           </section>
 
           <aside className="flex h-full flex-col gap-4">
+            <ActionTimeline feed={actionFeed} />
             <CaptureStrip title="つばめAI の獲得札" cards={cpuCaptures} />
             <CaptureStrip title="あなたの獲得札" cards={playerCaptures} />
             <LogPanel logs={logs} />

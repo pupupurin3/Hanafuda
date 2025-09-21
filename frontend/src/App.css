@@ -226,6 +226,148 @@
   color: #24160d;
 }
 
+.hanafuda-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(215, 173, 98, 0.5);
+  background: rgba(26, 18, 14, 0.75);
+  color: rgba(244, 239, 230, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hanafuda-chip-month {
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  background: rgba(215, 173, 98, 0.22);
+  color: rgba(244, 239, 230, 0.9);
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+.hanafuda-chip-name {
+  font-weight: 500;
+}
+
+.hanafuda-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hanafuda-chip-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hanafuda-chip-label {
+  font-size: 0.7rem;
+  color: rgba(215, 173, 98, 0.8);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hanafuda-chip--bright {
+  background: rgba(228, 187, 133, 0.18);
+  border-color: rgba(215, 173, 98, 0.65);
+}
+
+.hanafuda-chip--animal {
+  background: rgba(75, 116, 94, 0.22);
+  border-color: rgba(106, 162, 128, 0.55);
+}
+
+.hanafuda-chip--ribbon {
+  background: rgba(92, 109, 166, 0.2);
+  border-color: rgba(128, 151, 209, 0.55);
+}
+
+.hanafuda-chip--chaff {
+  background: rgba(168, 137, 102, 0.2);
+  border-color: rgba(214, 184, 140, 0.5);
+}
+
+.hanafuda-timeline {
+  position: relative;
+  padding-left: 0.75rem;
+}
+
+.hanafuda-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0.55rem;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(215, 173, 98, 0.45), rgba(54, 36, 18, 0.2));
+}
+
+.hanafuda-timeline-item {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.hanafuda-timeline-marker {
+  position: relative;
+  z-index: 1;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(215, 173, 98, 0.65);
+  background: rgba(24, 14, 10, 0.95);
+  box-shadow: 0 0 0 3px rgba(215, 173, 98, 0.18);
+}
+
+.hanafuda-timeline-marker.is-human {
+  background: linear-gradient(135deg, rgba(219, 93, 76, 0.95), rgba(128, 28, 24, 0.95));
+}
+
+.hanafuda-timeline-marker.is-cpu {
+  background: linear-gradient(135deg, rgba(59, 105, 148, 0.95), rgba(19, 33, 51, 0.95));
+}
+
+.hanafuda-timeline-content {
+  flex: 1;
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: linear-gradient(160deg, rgba(30, 22, 18, 0.92), rgba(16, 12, 10, 0.92));
+  border: 1px solid rgba(206, 176, 135, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.hanafuda-timeline-text {
+  font-size: 0.8rem;
+  color: rgba(244, 239, 230, 0.9);
+  line-height: 1.5;
+}
+
+.hanafuda-timeline-actor {
+  color: rgba(215, 173, 98, 0.9);
+  font-weight: 700;
+}
+
+.hanafuda-timeline-meta {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: rgba(200, 189, 164, 0.6);
+}
+
+.hanafuda-yaku-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.7rem;
+  color: rgba(255, 236, 205, 0.9);
+  list-style-type: '⮞ ';
+}
+
 .hanafuda-card-back {
   display: inline-flex;
   align-items: center;
