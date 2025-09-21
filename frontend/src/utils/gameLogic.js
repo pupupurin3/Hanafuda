@@ -10,6 +10,11 @@ const PLAYER_LABEL = {
 };
 
 const LOG_LIMIT = 80;
+const ACTION_FEED_LIMIT = 12;
+
+function createId(prefix) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+}
 
 function cloneDeck() {
   return cards.map((card) => ({ ...card }));
@@ -26,7 +31,7 @@ function shuffle(array) {
 
 function createLog(message) {
   return {
-    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    id: createId('log'),
     message,
     timestamp: new Date().toISOString(),
   };
@@ -38,6 +43,23 @@ function addLog(logs, message) {
     return nextLogs.slice(nextLogs.length - LOG_LIMIT);
   }
   return nextLogs;
+}
+
+function createFeedEntry(type, payload = {}) {
+  return {
+    id: createId('feed'),
+    type,
+    timestamp: new Date().toISOString(),
+    ...payload,
+  };
+}
+
+function addActionFeed(feed, entry) {
+  const nextFeed = [...feed, entry];
+  if (nextFeed.length > ACTION_FEED_LIMIT) {
+    return nextFeed.slice(nextFeed.length - ACTION_FEED_LIMIT);
+  }
+  return nextFeed;
 }
 
 function dealInitial(stateScores, roundNumber) {
@@ -77,6 +99,11 @@ function dealInitial(stateScores, roundNumber) {
     roundResult: null,
     roundNumber,
     logs: [createLog(`第${roundNumber}局開始！`)],
+    actionFeed: [
+      createFeedEntry('round-start', {
+        roundNumber,
+      }),
+    ],
   };
 }
 
@@ -106,6 +133,40 @@ function playCard(state, playerId, cardId, chosenFieldId) {
       field: [...state.field, card],
       logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は${describeCard(card)}を場に出しました。`),
       phase: 'draw',
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('play-to-field', {
+          playerId,
+          card,
+        }),
+      ),
+    };
+    return { state: nextState, pending: null };
+  }
+
+  if (matches.length === 3) {
+    const capturedFieldCards = [...matches];
+    const nextState = {
+      ...state,
+      hands: nextHands,
+      field: removeCardFromField(state.field, capturedFieldCards.map((fieldCard) => fieldCard.id)),
+      captures: {
+        ...state.captures,
+        [playerId]: [...state.captures[playerId], card, ...capturedFieldCards],
+      },
+      logs: addLog(
+        state.logs,
+        `${PLAYER_LABEL[playerId]}は${describeCard(card)}で場の同月札三枚をまとめて取りました。`,
+      ),
+      phase: 'draw',
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('capture-triple', {
+          playerId,
+          handCard: card,
+          captured: capturedFieldCards,
+        }),
+      ),
     };
     return { state: nextState, pending: null };
   }
@@ -122,6 +183,14 @@ function playCard(state, playerId, cardId, chosenFieldId) {
       },
       logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は${describeCard(card)}で${describeCard(fieldCard)}を取りました。`),
       phase: 'draw',
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('capture', {
+          playerId,
+          handCard: card,
+          captured: [fieldCard],
+        }),
+      ),
     };
     return { state: nextState, pending: null };
   }
@@ -138,6 +207,14 @@ function playCard(state, playerId, cardId, chosenFieldId) {
       pendingSelection: pending,
       logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は${describeCard(card)}を出しました。取り札を選んでください。`),
       phase: 'select-field',
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('select-field', {
+          playerId,
+          handCard: card,
+          options: matches,
+        }),
+      ),
     };
     return { state: nextState, pending };
   }
@@ -154,6 +231,14 @@ function playCard(state, playerId, cardId, chosenFieldId) {
     logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は${describeCard(card)}で${describeCard(fieldCard)}を取りました。`),
     phase: 'draw',
     pendingSelection: null,
+    actionFeed: addActionFeed(
+      state.actionFeed,
+      createFeedEntry('capture', {
+        playerId,
+        handCard: card,
+        captured: [fieldCard],
+      }),
+    ),
   };
 
   return { state: nextState, pending: null };
@@ -165,6 +250,13 @@ function captureFromDraw(state, playerId, drawnCard, matches) {
       ...state,
       field: [...state.field, drawnCard],
       logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は山札から${describeCard(drawnCard)}をめくり、場に置きました。`),
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('draw-to-field', {
+          playerId,
+          drawnCard,
+        }),
+      ),
     };
   }
 
@@ -183,6 +275,14 @@ function captureFromDraw(state, playerId, drawnCard, matches) {
     field: nextField,
     captures: nextCaptures,
     logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は山札から${describeCard(drawnCard)}をめくり、${actionWord}。`),
+    actionFeed: addActionFeed(
+      state.actionFeed,
+      createFeedEntry('capture-draw', {
+        playerId,
+        drawnCard,
+        captured: capturedFieldCards,
+      }),
+    ),
   };
 }
 
@@ -208,6 +308,14 @@ function finalizeTurn(state, playerId) {
       turn: playerId,
       phase: 'hand',
       pendingSelection: null,
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('round-result', {
+          playerId,
+          points: total,
+          yaku: list,
+        }),
+      ),
     };
   }
 
@@ -228,6 +336,10 @@ function finalizeTurn(state, playerId) {
       turn: playerId,
       phase: 'hand',
       pendingSelection: null,
+      actionFeed: addActionFeed(
+        state.actionFeed,
+        createFeedEntry('round-draw', {}),
+      ),
     };
   }
 
@@ -239,6 +351,12 @@ function finalizeTurn(state, playerId) {
     logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}の手番が終了しました。`),
     phase: 'hand',
     pendingSelection: null,
+    actionFeed: addActionFeed(
+      state.actionFeed,
+      createFeedEntry('turn-end', {
+        playerId,
+      }),
+    ),
   };
 }
 
@@ -301,6 +419,14 @@ function handlePlayerFieldSelection(state, fieldCardId) {
     pendingSelection: null,
     logs: addLog(state.logs, `${PLAYER_LABEL[PLAYER_HUMAN]}は${describeCard(pending.card)}で${describeCard(chosen)}を取りました。`),
     phase: 'draw',
+    actionFeed: addActionFeed(
+      state.actionFeed,
+      createFeedEntry('capture', {
+        playerId: PLAYER_HUMAN,
+        handCard: pending.card,
+        captured: [chosen],
+      }),
+    ),
   };
 
   return resolveDraw(nextState, PLAYER_HUMAN);
@@ -362,6 +488,14 @@ function handleCpuFieldSelection(state, fieldCardId) {
     pendingSelection: null,
     logs: addLog(state.logs, `${PLAYER_LABEL[PLAYER_CPU]}は${describeCard(pending.card)}で${describeCard(chosen)}を取りました。`),
     phase: 'draw',
+    actionFeed: addActionFeed(
+      state.actionFeed,
+      createFeedEntry('capture', {
+        playerId: PLAYER_CPU,
+        handCard: pending.card,
+        captured: [chosen],
+      }),
+    ),
   };
 
   return resolveDraw(nextState, PLAYER_CPU);
@@ -391,7 +525,11 @@ function startNextRound(state, keepScores = true) {
         [PLAYER_CPU]: 0,
       };
   const nextRoundNumber = state.roundNumber + 1;
-  return dealInitial({ ...nextScores }, nextRoundNumber);
+  const resetState = dealInitial({ ...nextScores }, nextRoundNumber);
+  return {
+    ...resetState,
+    logs: addLog(resetState.logs, '新しい局を配りました。'),
+  };
 }
 
 export function resetGame() {
