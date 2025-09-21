@@ -201,11 +201,15 @@ function playCard(state, playerId, cardId, chosenFieldId) {
       card,
       options: matches,
     };
+    const selectionMessage =
+      playerId === PLAYER_HUMAN
+        ? `${PLAYER_LABEL[playerId]}は${describeCard(card)}を出しました。取り札を選んでください。`
+        : `${PLAYER_LABEL[playerId]}は${describeCard(card)}を出しました。取り札を選択しています。`;
     const nextState = {
       ...state,
       hands: nextHands,
       pendingSelection: pending,
-      logs: addLog(state.logs, `${PLAYER_LABEL[playerId]}は${describeCard(card)}を出しました。取り札を選んでください。`),
+      logs: addLog(state.logs, selectionMessage),
       phase: 'select-field',
       actionFeed: addActionFeed(
         state.actionFeed,
@@ -507,11 +511,27 @@ function handleCpuTurn(state) {
   }
 
   const choice = chooseCpuCard(state);
-  const result = playCard(state, PLAYER_CPU, choice.cardId, choice.fieldCardId);
+  const card = state.hands[PLAYER_CPU].find((c) => c.id === choice.cardId);
+  const availableMatches = card
+    ? state.field.filter((fieldCard) => fieldCard.month === card.month)
+    : [];
+  const shouldPauseSelection = Boolean(choice.fieldCardId && availableMatches.length > 1);
 
-  if (result.pending) {
-    const fallbackField = result.pending.options[0];
-    return handleCpuFieldSelection(result.state, fallbackField.id);
+  const result = playCard(
+    state,
+    PLAYER_CPU,
+    choice.cardId,
+    shouldPauseSelection ? null : choice.fieldCardId,
+  );
+
+  if (shouldPauseSelection && result.pending) {
+    return {
+      ...result.state,
+      pendingSelection: {
+        ...result.pending,
+        selectedFieldId: choice.fieldCardId,
+      },
+    };
   }
 
   return resolveDraw(result.state, PLAYER_CPU);
@@ -554,6 +574,8 @@ export function gameReducer(state, action) {
       return handlePlayerFieldSelection(state, action.fieldCardId);
     case 'CPU_TURN':
       return handleCpuTurn(state);
+    case 'CPU_SELECT_FIELD':
+      return handleCpuFieldSelection(state, action.fieldCardId);
     case 'START_NEXT_ROUND':
       return startNextRound(state, action.keepScores !== false);
     case 'RESET_GAME':

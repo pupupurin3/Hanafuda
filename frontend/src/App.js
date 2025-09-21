@@ -57,7 +57,14 @@ function summarizeCapture(cards) {
   );
 }
 
-function HanafudaCard({ card, onClick, disabled, highlight = false, size = 'md' }) {
+function HanafudaCard({
+  card,
+  onClick,
+  disabled,
+  highlight = false,
+  size = 'md',
+  focus = 'player',
+}) {
   const baseSize =
     size === 'sm'
       ? 'w-16 h-24 text-xs'
@@ -76,6 +83,7 @@ function HanafudaCard({ card, onClick, disabled, highlight = false, size = 'md' 
         baseSize,
         disabled ? 'is-disabled' : '',
         highlight ? 'is-highlighted' : '',
+        focus === 'opponent' ? 'is-opponent-highlight' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -190,14 +198,15 @@ function RoundResult({ result, scores, onNextRound, onReset }) {
 }
 
 function LogPanel({ logs }) {
+  const orderedLogs = useMemo(() => logs.slice().reverse(), [logs]);
   return (
     <section className="hanafuda-panel hanafuda-panel--overlay flex h-full flex-col">
       <header className="hanafuda-panel-header border-b border-transparent p-3 text-xs font-semibold sm:text-sm">
         対局ログ
       </header>
       <div className="hanafuda-scroll flex-1 space-y-2 overflow-y-auto p-3 text-xs leading-relaxed text-white/80">
-        {logs.length === 0 && <p className="text-white/40">まだ動きはありません。</p>}
-        {logs.map((entry) => (
+        {orderedLogs.length === 0 && <p className="text-white/40">まだ動きはありません。</p>}
+        {orderedLogs.map((entry) => (
           <div key={entry.id} className="hanafuda-log-entry p-2 text-[13px]">
             <p>{entry.message}</p>
             <p className="mt-1 text-[10px] text-white/40">{new Date(entry.timestamp).toLocaleTimeString()}</p>
@@ -374,11 +383,20 @@ function App() {
   const cpuCaptures = captures[PLAYER_CPU];
 
   const pendingFieldIds = useMemo(() => {
-    if (!pendingSelection) {
+    if (!pendingSelection || pendingSelection.playerId !== PLAYER_HUMAN) {
       return new Set();
     }
     return new Set(pendingSelection.options.map((card) => card.id));
   }, [pendingSelection]);
+
+  const cpuTargetFieldId = useMemo(() => {
+    if (!pendingSelection || pendingSelection.playerId !== PLAYER_CPU) {
+      return null;
+    }
+    return pendingSelection.selectedFieldId || null;
+  }, [pendingSelection]);
+
+  const cpuSelectionCard = pendingSelection?.playerId === PLAYER_CPU ? pendingSelection.card : null;
 
   useEffect(() => {
     if (turn === PLAYER_CPU && !roundOver && !pendingSelection) {
@@ -389,6 +407,19 @@ function App() {
     }
     return undefined;
   }, [turn, roundOver, pendingSelection]);
+
+  useEffect(() => {
+    if (pendingSelection && pendingSelection.playerId === PLAYER_CPU) {
+      const timer = setTimeout(() => {
+        dispatch({
+          type: 'CPU_SELECT_FIELD',
+          fieldCardId: pendingSelection.selectedFieldId,
+        });
+      }, 900);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [pendingSelection]);
 
   const handleHandClick = (card) => {
     if (turn !== PLAYER_HUMAN || roundOver) {
@@ -446,6 +477,11 @@ function App() {
               <p>{pendingSelection.card.name} の取り札を選択してください。</p>
             </div>
           )}
+          {pendingSelection && pendingSelection.playerId === PLAYER_CPU && (
+            <div className="hanafuda-alert hanafuda-alert--cpu p-3 text-sm">
+              <p>つばめAIが {pendingSelection.card.name} の取り札を選択しています…</p>
+            </div>
+          )}
         </header>
 
         <main className="grid flex-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
@@ -455,10 +491,20 @@ function App() {
                 <h2 className="hanafuda-subtitle text-base font-semibold sm:text-lg">つばめAI（手札 {cpuHand.length} 枚）</h2>
                 <span className="hanafuda-meta text-xs sm:text-sm">得点: {scores[PLAYER_CPU]} 点</span>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {cpuHand.map((_, idx) => (
-                  <CardBack key={`cpu-card-${idx}`} label="裏" />
+                  <CardBack key={`cpu-card-${idx}`} label="裏" size="lg" />
                 ))}
+                {cpuSelectionCard && (
+                  <HanafudaCard
+                    key={cpuSelectionCard.id}
+                    card={cpuSelectionCard}
+                    size="lg"
+                    disabled
+                    highlight
+                    focus="opponent"
+                  />
+                )}
               </div>
             </div>
 
@@ -471,15 +517,21 @@ function App() {
                 {fieldCards.length === 0 && (
                   <span className="text-sm text-white/40">場札はありません。</span>
                 )}
-                {fieldCards.map((card) => (
-                  <HanafudaCard
-                    key={card.id}
-                    card={card}
-                    onClick={() => handleFieldClick(card)}
-                    disabled={!pendingFieldIds.has(card.id)}
-                    highlight={pendingFieldIds.has(card.id)}
-                  />
-                ))}
+                {fieldCards.map((card) => {
+                  const isHumanSelectable =
+                    pendingSelection?.playerId === PLAYER_HUMAN && pendingFieldIds.has(card.id);
+                  const isCpuFocus = cpuTargetFieldId === card.id;
+                  return (
+                    <HanafudaCard
+                      key={card.id}
+                      card={card}
+                      onClick={() => handleFieldClick(card)}
+                      disabled={!isHumanSelectable}
+                      highlight={isHumanSelectable || isCpuFocus}
+                      focus={isCpuFocus ? 'opponent' : 'player'}
+                    />
+                  );
+                })}
               </div>
             </div>
 

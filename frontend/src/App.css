@@ -102,6 +102,13 @@
   backdrop-filter: blur(6px);
 }
 
+.hanafuda-alert--cpu {
+  border-color: rgba(122, 178, 235, 0.5);
+  background: linear-gradient(140deg, rgba(80, 125, 185, 0.25), rgba(28, 46, 82, 0.35));
+  color: rgba(224, 238, 255, 0.95);
+  box-shadow: inset 0 1px 0 rgba(142, 187, 235, 0.25), 0 18px 32px rgba(22, 30, 48, 0.35);
+}
+
 .hanafuda-button {
   display: inline-flex;
   align-items: center;
@@ -200,6 +207,14 @@
   border-radius: 0.65rem;
   border: 1px solid rgba(215, 173, 98, 0.5);
   pointer-events: none;
+}
+
+.hanafuda-card.is-highlighted.is-opponent-highlight {
+  box-shadow: 0 0 0 3px rgba(128, 185, 238, 0.75), 0 24px 46px rgba(5, 17, 34, 0.55);
+}
+
+.hanafuda-card.is-highlighted.is-opponent-highlight::before {
+  border-color: rgba(128, 185, 238, 0.6);
 }
 
 .hanafuda-card--bright {
